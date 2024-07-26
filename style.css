@@ -64,8 +64,8 @@ button.button-delete:active {
 }
 
 header {
-    background-color: #424242;
-    color: #ffffff;
+    background-color: #efefef;
+    color: #242424;
     padding: 10px;
     height: 50px;
 
@@ -78,8 +78,6 @@ header div {
     text-align: center;
     width:20%;
     font-size: 12px; 
-    border-radius: 2px; 
-    border: 1px solid #444444;
 }
 
 
@@ -88,7 +86,6 @@ header div {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background-color: #424242;
     color: #ffffff;
 }
 
@@ -216,6 +213,10 @@ li.selectable.active {
 
 li.layer-item:hover {
     background-color: rgb(173, 181, 196);
+}
+
+li.selectable.active:hover {
+    background-color: rgb(154, 179, 226);
 }
 
 li.layer-item div {

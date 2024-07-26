@@ -3,13 +3,32 @@ class App {
     constructor(selector) {
         Layer.counter = 0;
 
+        this.colorPicker = new ColorPicker(this);
+
+        this.tools = Array.from(document.querySelectorAll('.tool-item'))
+                            .map(item => new Tool(this, item));
+        this.mode = this.tools[0].mode;
+        this.lineWidth = {
+            sharp: 1,
+            pen: 4,
+            paint: 1,
+            eraser: 5,
+            syringe: 1
+        };
+
+        this.brushSize = document.querySelector('#brushSize');
+        this.brushSize.addEventListener('input', event => {
+            this.lineWidth[this.mode] = this.brushSize.value;
+            this.effectScreen.setSize(this.brushSize.value);
+        });
+
+
         this.div = document.querySelector(selector);
         this.width = 600;
         this.height = 400;
         this.isDrawing = false;
         this.color = '#000000';
         this.lastPosition = { x: null, y: null };
-        // this.lineWidth = 1;
 
         this.effectScreen = new EffectScreen(this.width, this.height);
 
@@ -25,6 +44,28 @@ class App {
         this.stack_max_size = 10;
         this.undoStack = [];
         this.redoStack = [];
+
+        this.brushSize = document.querySelector('#brushSize');
+    }
+
+    // 描画用ツールの選択
+    selectTool(mode) {
+        this.mode = mode;
+        switch(this.mode) {
+            case 'sharp':
+            case 'paint':
+            case 'syringe':
+                this.brushSize.disabled = true;
+                break;
+            default:
+                this.brushSize.disabled = false;
+        }
+
+        this.brushSize.value = this.lineWidth[this.mode];
+        this.effectScreen.setSize(this.lineWidth[this.mode]);
+
+        if(this.mode === 'eraser') this.currentLayer.ctx.globalCompositeOperation = 'destination-out';
+        else this.currentLayer.ctx.globalCompositeOperation = 'source-over';
     }
 
     beforeDraw() {
@@ -40,6 +81,32 @@ class App {
             layer: this.currentLayer,
             data: this.currentLayer.ctx.getImageData(0, 0, this.width, this.height)
         });
+    }
+
+    draw(x, y) {
+        if (!this.isDrawing) return;
+    
+        if(!this.currentLayer.isVisible) return;
+    
+        // TODO: ここ，要検討。どうやったら太い線がきれいに引ける？
+        // if (currentMode === 'eraser') {
+        //     app.currentLayer.ctx.linecap = 'butt';
+        //     app.currentLayer.ctx.lineJoin = 'butt';
+        // } else {
+        //     app.currentLayer.ctx.linecap = 'round';
+        //     app.currentLayer.ctx.lineJoin = 'round';
+        // }
+        this.currentLayer.ctx.lineWidth = this.lineWidth[this.mode];
+        this.currentLayer.ctx.strokeStyle = this.color;
+        if(this.lastPosition.x === null || this.lastPosition.y === null) {
+            this.currentLayer.ctx.moveTo(x, y);
+        } else {
+            this.currentLayer.ctx.lineTo(x, y);
+            this.currentLayer.ctx.stroke();
+        }
+    
+        this.lastPosition.x = x;
+        this.lastPosition.y = y;
     }
 
     undo() {
@@ -175,7 +242,6 @@ class EffectScreen {
     }
 
     setColor(color) {
-        console.log(color);
         this.ctx.strokeStyle = color;
     }
 
@@ -194,6 +260,101 @@ class EffectScreen {
 
     setSize(size) {
         this.size = size;
-        console.log(this.size);
+    }
+}
+
+class ColorPicker {
+    constructor(app) {
+        this.app = app;
+
+        this.color = '#000000';
+        this.picker = document.querySelector('#colorPicker');
+        this.picker.addEventListener('change', event => {
+            this.color = event.target.value;
+        }, false);
+        
+        this.hexColor = document.querySelector('#hexColor');
+
+        this.colorParts = {
+            red: {
+                label: document.querySelector('#rValue'),
+                range: document.querySelector('#rRange')
+            },
+            green: {
+                label: document.querySelector('#gValue'),
+                range: document.querySelector('#gRange')
+            },
+            blue: {
+                label: document.querySelector('#bValue'),
+                range: document.querySelector('#bRange')
+            }
+        }
+
+        this.picker.addEventListener('change', event => {
+            this.updateHex();
+        }, false);
+
+        Object.keys(this.colorParts).forEach(key => {
+            this.colorParts[key].range.addEventListener('input', event => {
+                const value = ('00' + parseInt(event.target.value).toString(16)).slice(-2);
+                this.colorParts[key].label.innerHTML = value;
+
+                const color = this.getHex();
+
+                this.picker.value = color;
+                this.hexColor.innerHTML = color;
+                this.app.changeColor(color);
+            }, false);
+        });
+    }
+
+    getHex() {
+        const r = ('00' + parseInt(rRange.value).toString(16)).slice(-2);
+        const g = ('00' + parseInt(gRange.value).toString(16)).slice(-2);
+        const b = ('00' + parseInt(bRange.value).toString(16)).slice(-2);
+        return `#${r}${g}${b}`
+    }
+
+    getColor() {
+        return this.color;
+    }
+
+    // TODO: ここ，もうちょっとスマートに書けるはず
+    updateHex(r, g, b) {
+        if(r !== undefined) {
+            this.color = `#${('00' + r.toString(16)).slice(-2)}${('00' + g.toString(16)).slice(-2)}${('00' + b.toString(16)).slice(-2)}`;
+            this.picker.value = this.color;
+            console.log(this.color);
+        } else {
+            this.color = this.picker.value;
+            r = parseInt(this.color.substring(1, 3), 16);
+            g = parseInt(this.color.substring(3, 5), 16);
+            b = parseInt(this.color.substring(5, 7), 16);
+        }
+        this.hexColor.innerHTML = this.color;
+        this.colorParts.red.label.innerHTML = r;
+        this.colorParts.red.range.value = r;
+        this.colorParts.green.label.innerHTML = g;
+        this.colorParts.green.range.value = g;
+        this.colorParts.blue.label.innerHTML = b;
+        this.colorParts.blue.range.value = b;
+
+        this.app.changeColor(this.color);
+    }
+}
+
+class Tool {
+    constructor(app, item) {
+        this.app = app;
+        this.mode = item.dataset.mode;
+
+        // TODO: このイベントリスナー，Appクラスで定義すべき？
+        item.addEventListener('click', event => {
+            event.target.parentNode.parentNode.querySelectorAll('.tool-item').forEach(i => i.classList.remove('active'));
+
+            item.classList.add('active');
+
+            app.selectTool(this.mode);
+        }, false);
     }
 }
