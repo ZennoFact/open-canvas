@@ -1,4 +1,4 @@
-TODO: Canvasのサイズ変更を実装する
+// TODO: Canvasのサイズ変更を実装する
 class App {
     constructor(selector) {
         Layer.counter = 0;
