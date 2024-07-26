@@ -1,0 +1,248 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+input[type="number"] {
+    width: 50%; /*親要素いっぱい広げる*/
+    margin: 0px 10px; /*左に余白*/
+    padding: 5px 5px; /*ボックスを大きくする*/
+    border-radius: 3px; /*ボックス角の丸み*/
+    border: 2px solid #ddd; /*枠線*/
+    box-sizing: border-box; /*横幅の解釈をpadding, borderまでとする*/
+}
+
+button {
+    margin: 5px;
+    padding: 0;
+    font-family: inherit;
+    appearance: none;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    user-select: none;
+}
+
+button.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    /* aspect-ratio: 1; */
+    color: #222;
+    background-color: #efefef;
+    border-radius: 5px;
+    box-shadow: -4px -4px 8px #fff, 4px 4px 8px rgb(0 0 0 / 24%);
+
+    transition: box-shadow 0.2s;
+}
+
+button.button:hover {
+    box-shadow: -2px -2px 4px #fff, 2px 2px 4px rgb(0 0 0 / 24%);
+}
+
+button.button:active {
+    background-color: #ebebeb;
+    box-shadow: inset 4px 4px 8px rgb(0 0 0 / 16%);
+}
+
+button.button-delete {
+    color: #ff0000;
+    background:  rgba(245, 144, 144, 0.3);
+    box-shadow: none;
+    padding: 5px;
+}
+
+button.button-delete:hover {
+    box-shadow: -2px -2px 4px rgb(235, 180, 180), 2px 2px 4px rgba(78, 62, 62, 0.24);
+}
+
+button.button-delete:active {
+    background-color: #ebebeb;
+    box-shadow: inset 4px 4px 8px rgb(78, 62, 62, 0.24); 
+}
+
+header {
+    background-color: #424242;
+    color: #ffffff;
+    padding: 10px;
+    height: 50px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+header div {
+    text-align: center;
+    width:20%;
+    font-size: 12px; 
+    border-radius: 2px; 
+    border: 1px solid #444444;
+}
+
+
+.undo-redo {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color: #424242;
+    color: #ffffff;
+}
+
+.undo-redo div {
+    margin: 20px;
+}
+
+header span.title {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+div.main{
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 50px);
+    overflow: hidden;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: #c7c7c7;
+    height: 2px;
+    width: 100%;
+}
+
+input[type="range"]:focus,
+input[type="range"]:active {
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  position: relative;
+  border: none;
+  width: 12px;
+  height: 12px;
+  display: block;
+  background-color: #262626;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+}
+
+div.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #999999;
+}
+
+div#canvas {
+    background-color: #eeeeee;
+    position: relative;
+}
+
+div#canvas canvas.layer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+div#canvas canvas.hidden {
+    display: none;
+}
+
+.ui {
+    background-color: #ffffff;
+    position: absolute;
+    z-index: 2;
+    width: 200px;
+    height: 45%;
+    padding: 10px;   
+}
+
+.ui.function-list {
+    top: 10px;
+    right: 10px;
+}
+
+.ui.tool-list {
+    top: 10px;
+    left: 10px;
+    user-select: none;
+}
+.ui.tool-list li {
+    cursor: pointer;
+}
+.ui.tool-list li:hover {
+    background-color: rgb(173, 181, 196);
+}
+
+.ui.color-picker {
+    bottom: 10px;
+    left: 10px;
+}
+
+.ui.layer-list {
+    bottom: 10px;
+    right: 10px;
+}
+
+.ui ul {
+    list-style: none;
+}
+
+.ui.layer-list li.hidden {
+    display: none;
+}
+
+li.selectable {
+    padding-left: 10px;
+}
+
+li.selectable.active {
+    background-color: cornflowerblue;
+}
+
+li.layer-item:hover {
+    background-color: rgb(173, 181, 196);
+}
+
+li.layer-item div {
+    display: flex;
+}
+
+li.layer-item div div {
+    display: flex;
+    align-items: center;
+    padding-left: 5px;
+}
+
+li.layer-item div div span{
+    margin-left: 5px;
+}
+
+li.layer-item div div:last-child {
+    margin-left: auto;
+}
+
+div.color-picker div ul li p {
+    user-select: none;
+}
+
+canvas#effectScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 999;
+}

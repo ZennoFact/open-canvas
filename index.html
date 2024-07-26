@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>連携授業サンプル</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>
+            <span class="title">お絵描きツール</span>
+        </div>
+        <div>
+            <label for="brushSize">ブラシサイズ</label><input type="number" id="brushSize" value="1" min="1" max="100">
+        </div>
+        <div class="undo-redo">
+            <div>
+                <button id="undoButton" class="button">←undo</button>
+            </div>
+            <div>
+                <button id="redoButton" class="button">redo→</button>
+            </div>
+        </div>
+        <div></div>
+        <div></div>
+    </header>
+    <div class="main">
+        <div class="container">
+            <div id="canvas"></div>
+        </div>
+        <div class="ui function-list">
+            <button id="saveButton" class="button">画像の保存</button>
+        </div>
+        <div class="ui tool-list">
+            <div>
+                <span>ツール</span>
+            </div>
+            <ul>
+                <li data-mode="sharp" class="tool-item selectable active"><p>シャーペン</p></li>
+                <li data-mode="pen" class="tool-item selectable"><p>ペン</p></li>
+                <li data-mode="paint" class="tool-item selectable"><p>塗りつぶし</p></li>
+                <li data-mode="eraser" class="tool-item selectable"><p>消しゴム</p></li>
+                <li data-mode="syringe" class="tool-item selectable"><p>スポイト</p></li>
+                <!-- <li data-mode="string" class="tool-item selectable"><p>文字の入力</p></li> -->
+            </ul>
+        </div>
+        <div class="ui color-picker">
+            <div>
+                <span>色</span>
+            </div>
+            <div>
+                <input type="color" id="colorPicker">
+                <ul>
+                    <li>
+                        <p id="hexColor">#000000</p>
+                    </li>
+                    <li>
+                        <p>R:<span id="rValue">0</span></p>
+                        <input type="range" name="redValue" id="rRange" min="0" max="255" step="1" value="0">
+                    </li>
+                    <li>
+                        <p>G:<span id="gValue">0</span></p>
+                        <input type="range" name="greenValue" id="gRange" min="0" max="255" step="1" value="0">
+                    </li>
+                    <li>
+                        <p>B:<span id="bValue">0</span></p>
+                        <input type="range" name="blueValue" id="bRange" min="0" max="255" step="1" value="0">
+                    </li>
+                </ul>   
+            </div>
+        </div>
+        <div class="ui layer-list">
+            <div>
+                <span>レイヤー</span>
+                <button id="addLayerButton" class="button">+</button>
+            </div>
+            <ul id="layerList">
+            </ul>
+        </div>
+    </div>
+
+    <template id="layerInfoTemplate">
+        <li class="layer-item selectable">
+            <div>
+                <div>
+                    <input class="change-visibility" type="checkbox" checked>
+                    <span class="layer-title"></span>
+                </div>
+                <div>
+                    <button class="button button-delete">X</button>
+                </div>
+            </div>
+        </li>
+    </template>
+
+    <script src="ui.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
