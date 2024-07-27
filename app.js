@@ -66,9 +66,29 @@ class App {
             this.draw(event.offsetX, event.offsetY);
         });
 
+        this.div.addEventListener('mouseleave', event => {
+            this.effectScreen.clear();
+            this.lastPosition.x = null;
+            this.lastPosition.y = null;
+        });
+
+        this.div.addEventListener('mouseenter', event => {
+            this.lastPosition.x = null;
+            this.lastPosition.y = null;
+            if (app.isDrawing) {
+                app.draw(event.offsetX, event.offsetY);
+            }
+        });
+
+        this.div.addEventListener('mouseup', () => {
+            this.isDrawing = false;
+            this.lastPosition.x = null;
+            this.lastPosition.y = null;
+        });
+
         this.currentLayer = this.layers[0];
 
-        this.stack_max_size = 10;
+        this.stack_max_size = 20;
         this.undoStack = [];
         this.redoStack = [];
 
@@ -105,7 +125,7 @@ class App {
 
         // 現在のレイヤーのデータをスタックに追加
         this.undoStack.unshift({
-            layer: this.currentLayer,
+            ctx: this.currentLayer.ctx,
             data: this.currentLayer.ctx.getImageData(0, 0, this.width, this.height)
         });
     }
@@ -139,23 +159,23 @@ class App {
     undo() {
         if(this.undoStack <= 0) return;
 
-        // TODO: currentLayer動かされてからのundoされると厳しい。
-        this.redoStack.unshift({
-            layer: this.currentLayer,
-            data: this.currentLayer.ctx.getImageData(0, 0, this.width, this.height)
-        });
         const undoData = this.undoStack.shift();
-        undoData.layer.ctx.putImageData(undoData.data, 0, 0);
+        this.redoStack.unshift({
+            ctx: undoData.ctx,
+            data: undoData.ctx.getImageData(0, 0, this.width, this.height)
+        });
+        undoData.ctx.putImageData(undoData.data, 0, 0);
     }
 
     redo() {
         if(this.redoStack <= 0) return;
         this.undoStack.unshift({
-            layer: this.currentLayer,
+            ctx: this.currentLayer.ctx,
             data: this.currentLayer.ctx.getImageData(0, 0, this.width, this.height)
         });
+        
         const redoData = this.redoStack.shift();
-        redoData.layer.ctx.putImageData(redoData.data, 0, 0);
+        redoData.ctx.putImageData(redoData.data, 0, 0);
     }
 
     resizeCanvas(layer) {

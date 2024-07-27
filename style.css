@@ -24,6 +24,7 @@ button {
     user-select: none;
 }
 
+/* TODO: input[type="file"]のデザイン変更が必要 */
 button.button {
     display: flex;
     align-items: center;

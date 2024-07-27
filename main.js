@@ -1,35 +1,32 @@
 Layer.counter = 0;
 
-const tools = document.querySelectorAll('.tool-item');
-
 const app = new App("#canvas");
 
+window.addEventListener('mouseup', () => {
+    app.isDrawing = false;
+});
+
 const addLayerButton = document.querySelector('#addLayerButton');
-addLayerButton.addEventListener('click', e => {
+addLayerButton.addEventListener('click', () => {
     app.createLayer();
 });
 
-app.div.addEventListener('mouseleave', (e) => {
-    app.effectScreen.clear();
-    app.lastPosition.x = null;
-    app.lastPosition.y = null;
-});
+// 画像の読込
+document.querySelector('#loadButton').addEventListener('change', event => {
+    const file = event.target.files;
+    const reader = new FileReader();
+    reader.onload = () => {
+        const image = new Image();
+        image.onload = event => {
+            app.currentLayer.ctx.drawImage(image, 0, 0);
+        }
 
-app.div.addEventListener('mouseenter', (e) => {
-    app.lastPosition.x = null;
-    app.lastPosition.y = null;
-    if (app.isDrawing) {
-        app.draw(e.offsetX, e.offsetY);
+        image.src = reader.result;
     }
+    
+    reader.readAsDataURL(file[0]);
+
 });
-
-
-document.addEventListener('mouseup', (e) => {
-    app.isDrawing = false;
-    app.lastPosition.x = null;
-    app.lastPosition.y = null;
-});
-
 
 // TODO: 画像の保存
 const saveButton = document.querySelector('#saveButton');
@@ -56,7 +53,7 @@ function concatAndSave(layers) {
     link.click();
 }
 
-// undo / redo
+// undo & redo
 const undoButton = document.querySelector('#undoButton');
 undoButton.addEventListener('click', () => app.undo());
 
