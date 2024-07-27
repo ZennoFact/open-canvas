@@ -1,4 +1,5 @@
 // TODO: Canvasのサイズ変更を実装する
+// TODO: コード綺麗にする
 class App {
     constructor(selector) {
         Layer.counter = 0;
@@ -31,13 +32,39 @@ class App {
         this.lastPosition = { x: null, y: null };
 
         this.effectScreen = new EffectScreen(this.width, this.height);
-
         this.div.append(this.effectScreen.canvas);
 
-        
         this.layerList = document.querySelector('#layerList');
         this.layers = [];
         this.createLayer('default');
+
+        this.div.addEventListener('mousedown', event => {
+            this.beforeDraw();
+
+            switch (this.mode) {
+                case 'paint':
+                    this.currentLayer.floodFill(event.offsetX, event.offsetY, this.color);
+                    break;
+                case 'syringe':
+                    var imgData = this.currentLayer.ctx.getImageData(0, 0, this.currentLayer.canvas.width, this.currentLayer.canvas.height);
+                    const pixelPos = (event.offsetY * imgData.width + event.offsetX) * 4;
+                    const color = Color.getColor(imgData.data, pixelPos);
+                    this.colorPicker.updateHex(color.red, color.green, color.blue);
+                    break;
+                default:
+                    this.isDrawing = true;
+                    this.lastPosition.x = null;
+                    this.lastPosition.y = null;
+            
+                    this.currentLayer.ctx.beginPath();
+                    this.currentLayer.ctx.moveTo(this.lastPosition.x, this.lastPosition.y);
+            }
+        });
+
+        this.div.addEventListener('mousemove', event => {
+            this.effectScreen.update(event.offsetX, event.offsetY);
+            this.draw(event.offsetX, event.offsetY);
+        });
 
         this.currentLayer = this.layers[0];
 
@@ -88,7 +115,7 @@ class App {
     
         if(!this.currentLayer.isVisible) return;
     
-        // TODO: ここ，要検討。どうやったら太い線がきれいに引ける？
+        // TODO: ここ，要検討。どうやったら太い線がきれいに引ける？太い線のスタート時に乱れる
         // if (currentMode === 'eraser') {
         //     app.currentLayer.ctx.linecap = 'butt';
         //     app.currentLayer.ctx.lineJoin = 'butt';
@@ -228,6 +255,75 @@ class Layer {
     getContext() {
         return this.canvas.getContext('2d');
     }
+
+    // 塗りつぶし関数
+    floodFill(startX, startY, fillColor) {
+        var imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        var data = imgData.data;
+        var width = imgData.width;
+        var height = imgData.height;
+    
+        var startPos = (startY * width + startX) * 4;
+        var startR = data[startPos];
+        var startG = data[startPos + 1];
+        var startB = data[startPos + 2];
+        var startA = data[startPos + 3];
+    
+        var targetColor = { red: startR, green: startG, blue: startB, alpha: startA };
+        var fillColor = Color.hexToRGBA(fillColor);
+        if (!Color.match(targetColor, fillColor)) {
+            var pixelStack = [[startX, startY]];
+    
+            while (pixelStack.length) {
+                var newPos, x, y, pixelPos, reachLeft, reachRight;
+                newPos = pixelStack.pop();
+                x = newPos[0];
+                y = newPos[1];
+    
+                pixelPos = (y * width + x) * 4;
+                while (y >= 0 && Color.match(Color.getColor(data, pixelPos), targetColor)) {
+                    y--;
+                    pixelPos -= width * 4;
+                }
+    
+                pixelPos += width * 4;
+                y++;
+                reachLeft = false;
+                reachRight = false;
+    
+                while (y < height && Color.match(Color.getColor(data, pixelPos), targetColor)) {
+                    Color.fill(data, pixelPos, fillColor);
+    
+                    if (x > 0) {
+                        if (Color.match(Color.getColor(data, pixelPos - 4), targetColor)) {
+                            if (!reachLeft) {
+                                pixelStack.push([x - 1, y]);
+                                reachLeft = true;
+                            }
+                        } else if (reachLeft) {
+                            reachLeft = false;
+                        }
+                    }
+    
+                    if (x < width - 1) {
+                        if (Color.match(Color.getColor(data, pixelPos + 4), targetColor)) {
+                            if (!reachRight) {
+                                pixelStack.push([x + 1, y]);
+                                reachRight = true;
+                            }
+                        } else if (reachRight) {
+                            reachRight = false;
+                        }
+                    }
+    
+                    y++;
+                    pixelPos += width * 4;
+                }
+            }
+    
+            this.ctx.putImageData(imgData, 0, 0);
+        }
+    }
 }
 
 class EffectScreen {
@@ -322,7 +418,7 @@ class ColorPicker {
     // TODO: ここ，もうちょっとスマートに書けるはず
     updateHex(r, g, b) {
         if(r !== undefined) {
-            this.color = `#${('00' + r.toString(16)).slice(-2)}${('00' + g.toString(16)).slice(-2)}${('00' + b.toString(16)).slice(-2)}`;
+            this.color = Color.RGBAtoHex(r, g, b);
             this.picker.value = this.color;
             console.log(this.color);
         } else {
@@ -356,5 +452,35 @@ class Tool {
 
             app.selectTool(this.mode);
         }, false);
+    }
+}
+
+class Color {
+    static getColor(data, pos) {
+        return { red: data[pos], green: data[pos + 1], blue: data[pos + 2], alpha: data[pos + 3] };
+    }
+
+    static fill(data, pos, color) {
+        data[pos] = color.red;
+        data[pos + 1] = color.green;
+        data[pos + 2] = color.blue;
+        data[pos + 3] = color.alpha;
+    }
+
+    static match(color1, color2) {
+        return color1.red === color2.red && color1.green === color2.green && color1.blue === color2.blue && color1.alpha === color2.alpha;
+    }
+
+    static hexToRGBA(hex) {
+        return {
+            red: parseInt(hex.substring(1, 3), 16),
+            green: parseInt(hex.substring(3, 5), 16),
+            blue: parseInt(hex.substring(5, 7), 16),
+            alpha: 255
+        }
+    }
+
+    static RGBAtoHex(r, g, b) {
+        return `#${('00' + r.toString(16)).slice(-2)}${('00' + g.toString(16)).slice(-2)}${('00' + b.toString(16)).slice(-2)}`;
     }
 }
